@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create an Auto Scaling Group (ASG) using an
+  EC2 Launch Template
+
+Parameters:
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    # AllowedValues:
+    # - t2.micro
+    ConstraintDescription: Must be a valid EC2 instance type.
+
+  AmiId:
+    Description: Amazon Machine Image ID for the instance
+    Type: String
+    Default: ami-0984f4b9e98be44bf
+
+Resources:
+  # VPC Creation
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: MyVPC
+
+  # Subnet Creation
+  SubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: SubnetA
+
+  SubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MyVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+      - Key: Name
+        Value: SubnetB
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH and HTTP access
+      VpcId:
+        Ref: MyVPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0    # Allow SSH from any IP
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0    # Allow HTTP from any IP
+
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: MyLaunchTemplate
+      LaunchTemplateData:
+        InstanceType:
+          Ref: InstanceType
+        ImageId:
+          Ref: AmiId
+        SecurityGroupIds:
+        - Fn::GetAtt: MySecurityGroup.GroupId
+        TagSpecifications:
+        - ResourceType: instance
+          Tags:
+          - Key: Name
+            Value: ASGInstance
+
+  MyAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: awesomeASG
+      LaunchTemplate:
+        LaunchTemplateId:
+          Ref: MyLaunchTemplate
+        Version:
+          Fn::GetAtt: MyLaunchTemplate.LatestVersionNumber
+      MinSize: 1
+      MaxSize: 3
+      DesiredCapacity: 2
+      VPCZoneIdentifier:
+      - Ref: SubnetA
+      - Ref: SubnetB
+      Tags:
+      - Key: Name
+        Value: MyASGInstance
+        PropagateAtLaunch: true
+
+Outputs:
+  VPCID:
+    Description: ID of the created VPC
+    Value:
+      Ref: MyVPC
+  AutoScalingGroupID:
+    Description: ID of the created Auto Scaling Group
+    Value:
+      Ref: awesomeASG
+  LaunchTemplateID:
+    Description: ID of the created Launch Template
+    Value:
+      Ref: MyLaunchTemplate
+  SecurityGroupID:
+    Description: ID of the created Security Group
+    Value:
+      Ref: MySecurityGroup

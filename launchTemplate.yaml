@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template for an EC2 Launch Template with t3.micro instance
+
+Parameters:
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t2.micro
+    ConstraintDescription: Must be a valid EC2 instance type.
+
+  # KeyName:
+  #   Description: Name of an existing EC2 KeyPair to enable SSH access
+  #   Type: AWS::EC2::KeyPair::KeyName
+  #   ConstraintDescription: Must be the name of an existing EC2 KeyPair.
+
+  # SecurityGroup:
+  #   Description: Security Group to associate with EC2 instances
+  #   Type: AWS::EC2::SecurityGroup::Id
+  #   ConstraintDescription: Must be a valid security group ID.
+
+  AmiId:
+    Description: Amazon Machine Image ID for the instance (e.g., Amazon Linux 2)
+    Type: String
+    Default: ami-02801556a781a4499
+
+Resources:
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow SSH and HTTP access
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0  # Allow SSH from any IP
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0  # Allow HTTP from any IP
+
+  MyLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties: 
+      LaunchTemplateName: MyLaunchTemplate
+      LaunchTemplateData:
+        InstanceType: !Ref InstanceType
+        # KeyName: !Ref KeyName
+        ImageId: !Ref AmiId
+        SecurityGroups:
+          - !Ref MySecurityGroup
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: LaunchTemplateInstance
+
+Outputs:
+  LaunchTemplateID:
+    Description: ID of the created Launch Template
+    Value: !Ref MyLaunchTemplate
