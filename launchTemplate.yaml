@@ -11,16 +11,6 @@ Parameters:
       - t2.micro
     ConstraintDescription: Must be a valid EC2 instance type.
 
-  # KeyName:
-  #   Description: Name of an existing EC2 KeyPair to enable SSH access
-  #   Type: AWS::EC2::KeyPair::KeyName
-  #   ConstraintDescription: Must be the name of an existing EC2 KeyPair.
-
-  # SecurityGroup:
-  #   Description: Security Group to associate with EC2 instances
-  #   Type: AWS::EC2::SecurityGroup::Id
-  #   ConstraintDescription: Must be a valid security group ID.
-
   AmiId:
     Description: Amazon Machine Image ID for the instance (e.g., Amazon Linux 2)
     Type: String
