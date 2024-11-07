@@ -36,8 +36,6 @@ def update_yaml(file_path, name=None, size=None):
     """Update YAML file with new parameters."""
     # Load existing YAML data
     data = load_yaml(file_path)
-    # print(data['Parameters']['ASGName'])
-    # Update the parameters if provided
     if name:
         data['Resources']['MyAutoScalingGroup']['Properties']['AutoScalingGroupName'] = name
         data['Outputs']['AutoScalingGroupID']['Value']['Ref'] = name
