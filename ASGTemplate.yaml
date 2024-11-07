@@ -7,8 +7,6 @@ Parameters:
     Description: EC2 instance type
     Type: String
     Default: t2.micro
-    # AllowedValues:
-    # - t2.micro
     ConstraintDescription: Must be a valid EC2 instance type.
 
   AmiId:
